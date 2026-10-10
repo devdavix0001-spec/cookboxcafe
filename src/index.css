@@ -81,3 +81,6 @@ a { color:inherit; text-decoration:none; }
 @media (max-width:760px) { .orders-screen { margin:12px auto 55px; padding:17px; }.profile-details .demo-field { padding:12px; }.journal-grid { grid-template-columns:1fr; }.checkout-fields { grid-template-columns:1fr; } }
 
 .favourite-list .remove-favourite { border:1px solid var(--line); background:var(--cream); color:var(--muted); }
+
+.pwa-install-button { display:flex; align-items:center; justify-content:center; gap:7px; min-height:36px; padding:0 12px; border:1px solid rgba(23,22,18,.1); border-radius:999px; background:var(--gold); color:var(--ink); font-size:11px; font-weight:700; white-space:nowrap; }.pwa-install-button:hover { background:#ffca3a; }.install-help { display:flex; align-items:center; justify-content:space-between; gap:14px; width:min(100% - 36px,900px); margin:10px auto 0; padding:12px 15px; border:1px solid var(--line); border-radius:13px; background:var(--cream); box-shadow:0 8px 28px rgba(23,22,18,.06); }.install-help p { margin:0; color:var(--ink); font-size:12px; line-height:1.5; }.install-help button { flex:none; padding:8px 11px; border-radius:9px; background:var(--ink); color:var(--cream); font-size:11px; font-weight:700; }
+@media (max-width:480px) { .pwa-install-button { width:36px; min-width:36px; padding:0; }.pwa-install-button span { display:none; }.top-actions { gap:7px; } }

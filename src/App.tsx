@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowRight, BarChart3, Bell, CheckCircle2, ChefHat, ChevronRight, Clock3, Compass, CreditCard, LayoutDashboard, Newspaper,
+  ArrowRight, BarChart3, Bell, CheckCircle2, ChefHat, ChevronRight, Clock3, Compass, CreditCard, Download, LayoutDashboard, Newspaper,
   Heart, Home as HomeIcon, LockKeyhole, Mail, Minus, PackageCheck, Plus, Search, ShoppingBag,
   Sparkles, UserRound, Utensils, X,
 } from "lucide-react";
@@ -12,6 +12,7 @@ type DemoUser = { name: string; email: string; phone: string; address: string; f
 type CustomerDetails = Pick<DemoUser, "name" | "email" | "phone" | "address">;
 type PaymentChannel = "Card" | "Bank transfer" | "USSD";
 type CustomerOrder = { id: string; createdAt: string; items: BasketLine[]; total: number; status: "Paid in demo" | "Transfer receipt added (demo)" | "WhatsApp marked sent"; method: string; customer: CustomerDetails; receiptFileName?: string };
+type DeferredInstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }> };
 
 const img = (id: string) => `https://smrxhjrlcbjhyyocyyyq.supabase.co/storage/v1/object/public/menu-images/${id}.jpg`;
 const heroImages = [
@@ -81,12 +82,12 @@ const demoOrders = [
 ];
 
 export default function App() {
-  const [screen, setScreen] = useState<"home" | "menu" | "journal" | "account" | "admin" | "dashboard">(() => window.location.pathname === "/admin" ? "admin" : "home");
+  const [screen, setScreen] = useState<"home" | "menu" | "journal" | "account" | "admin" | "dashboard">(() => { const intent = new URLSearchParams(window.location.search).get("intent"); return window.location.pathname === "/admin" ? "admin" : intent === "order" ? "menu" : "home"; });
   const [userTab, setUserTab] = useState<"overview" | "orders" | "favourites" | "profile">("overview");
   const [category, setCategory] = useState<Category>("Main Dish");
   const [query, setQuery] = useState("");
   const [basket, setBasket] = useState<BasketLine[]>(() => { try { return JSON.parse(localStorage.getItem("cookbox-basket") || "[]"); } catch { localStorage.removeItem("cookbox-basket"); return []; } });
-  const [showBasket, setShowBasket] = useState(false);
+  const [showBasket, setShowBasket] = useState(() => new URLSearchParams(window.location.search).get("intent") === "basket");
   const [showAuth, setShowAuth] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [paymentProvider, setPaymentProvider] = useState<"Paystack demo" | "Flutterwave demo">("Paystack demo");
@@ -99,11 +100,15 @@ export default function App() {
   const [toast, setToast] = useState("");
   const [hero, setHero] = useState(0);
   const [selectedJournalPost, setSelectedJournalPost] = useState<string | null>(null);
+  const [installPrompt, setInstallPrompt] = useState<DeferredInstallPrompt | null>(null);
+  const [installHelp, setInstallHelp] = useState<string | null>(null);
+  const [appInstalled, setAppInstalled] = useState(() => window.matchMedia("(display-mode: standalone)").matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
 
   useEffect(() => { const timer = window.setInterval(() => setHero((v) => (v + 1) % heroImages.length), 5000); return () => window.clearInterval(timer); }, []);
   useEffect(() => { localStorage.setItem("cookbox-basket", JSON.stringify(basket)); }, [basket]);
   useEffect(() => { localStorage.setItem("cookbox-customer-orders", JSON.stringify(customerOrders)); }, [customerOrders]);
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(""), 2200); return () => window.clearTimeout(timer); }, [toast]);
+  useEffect(() => { const beforeInstall = (event: Event) => { event.preventDefault(); setInstallPrompt(event as DeferredInstallPrompt); }; const installed = () => { setAppInstalled(true); setInstallPrompt(null); setInstallHelp(null); setToast("Cookbox was added to your device"); }; window.addEventListener("beforeinstallprompt", beforeInstall); window.addEventListener("appinstalled", installed); return () => { window.removeEventListener("beforeinstallprompt", beforeInstall); window.removeEventListener("appinstalled", installed); }; }, []);
 
   const add = (product: Product) => { setBasket((lines) => { const found = lines.find((line) => line.id === product.id); return found ? lines.map((line) => line.id === product.id ? { ...line, quantity: line.quantity + 1 } : line) : [...lines, { ...product, quantity: 1 }]; }); setToast(`${product.name} added to basket`); };
   const changeQty = (id: string, delta: number) => setBasket((lines) => lines.flatMap((line) => line.id === id ? (line.quantity + delta > 0 ? [{ ...line, quantity: line.quantity + delta }] : []) : [line]));
@@ -120,12 +125,14 @@ export default function App() {
   const visible = useMemo(() => products.filter((p) => p.category === category && p.name.toLowerCase().includes(query.toLowerCase())), [category, query]);
   const whatsapp = `https://wa.me/2348025724498?text=${encodeURIComponent(`Hello Cookbox Cafe, I'd like to order ${basket.map((i) => `${i.quantity}x ${i.name}`).join(", ") || "from the menu"}. Estimated subtotal: ${money(subtotal)}.${demoUser?.name ? ` Name: ${demoUser.name}.` : ""}${demoUser?.phone ? ` Phone: ${demoUser.phone}.` : ""}${demoUser?.address ? ` Delivery area: ${demoUser.address}.` : ""}`)}`;
 
+  const requestInstall = async () => { if (!installPrompt) { const isAppleMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); setInstallHelp(isAppleMobile ? "If you are not already in Safari, open this page in Safari. Tap Share (the square with an upward arrow), then choose Add to Home Screen." : "Open your browser menu and choose Install Cookbox or Add to Home Screen. Installation requires HTTPS and a browser that supports web apps."); return; } try { await installPrompt.prompt(); const choice = await installPrompt.userChoice; if (choice.outcome === "accepted") setAppInstalled(true); setInstallPrompt(null); } catch { setInstallPrompt(null); setInstallHelp("Open the browser menu and choose Install Cookbox or Add to Home Screen."); } };
   const goMenu = (next?: Category) => { if (next) setCategory(next); setScreen("menu"); window.scrollTo({ top: 0, behavior: "smooth" }); };
   return <div className="app-shell">
     <header className="topbar">
       <button className="brand" onClick={() => setScreen("home")} aria-label="Cookbox Cafe home"><span className="brand-mark">CBX</span><span><strong>Cookbox</strong><small>Cafe</small></span></button>
-      <div className="top-actions"><span className="open-status"><i /> Open until 8:30pm</span><button className="icon-button" aria-label="Notifications"><Bell size={19} /></button><button className="avatar-button" aria-label="Account" onClick={() => setScreen(demoUser ? "dashboard" : "account")}><UserRound size={18} /></button></div>
+      <div className="top-actions"><span className="open-status"><i /> Open until 8:30pm</span>{!appInstalled && <button className="pwa-install-button" onClick={requestInstall} aria-label="Install Cookbox app"><Download size={16} /><span>Install</span></button>}<button className="icon-button" aria-label="Notifications"><Bell size={19} /></button><button className="avatar-button" aria-label="Account" onClick={() => setScreen(demoUser ? "dashboard" : "account")}><UserRound size={18} /></button></div>
     </header>
+    {installHelp && <aside className="install-help" role="region" aria-label="Install Cookbox instructions"><p>{installHelp}</p><button onClick={() => setInstallHelp(null)}>Dismiss</button></aside>}
 
     <main className="page-content">
       {screen === "home" && <>

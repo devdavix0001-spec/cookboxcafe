@@ -2,18 +2,22 @@
   "id": "/",
   "name": "Cookbox Cafe",
   "short_name": "Cookbox",
-  "start_url": "/",
+  "description": "Warm meals, boxed with love. Browse the Cookbox Cafe menu and order across Lagos.",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#fffaf0",
   "theme_color": "#f4b51b",
-  "description": "Warm meals, boxed with love. Order Cookbox Cafe meals across Lagos.",
+  "categories": ["food", "lifestyle"],
   "icons": [
-    {"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+    { "src": "/icons/app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/app-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
   "shortcuts": [
-    {"name":"Order now","url":"/?intent=order"},
-    {"name":"View basket","url":"/?intent=basket"},
-    {"name":"Contact on WhatsApp","url":"https://wa.me/2348025724498"}
+    { "name": "Order now", "url": "/?intent=order" },
+    { "name": "View basket", "url": "/?intent=basket" }
   ]
 }
