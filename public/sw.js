@@ -1,7 +1,14 @@
-const CACHE = 'cookbox-v1';
-const STATIC = ['/','/manifest.webmanifest','/manus-routes.json'];
-self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(STATIC)).then(() => self.skipWaiting())));
-self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
+const CACHE = 'cookbox-v2';
+const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/manus-routes.json'];
+
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+});
+
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   event.respondWith(fetch(event.request).then(response => {
