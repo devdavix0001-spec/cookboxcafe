@@ -18,11 +18,11 @@ Rebuild the Cookbox Cafe ordering experience as a React web app using the live s
 - **Signature color:** Cookbox Gold `#F4B51B`.
 
 ## Structure
-- `client/src/App.tsx`: app shell, route-like screen state, menu catalog, basket state and WhatsApp checkout handoff.
-- `client/src/index.css`: responsive visual system, desktop/mobile navigation, product cards and basket sheet.
+- `src/App.tsx`: app shell, route-like screen state, menu catalog, basket state and WhatsApp checkout handoff.
+- `src/index.css`: responsive visual system, desktop/mobile navigation, product cards and basket sheet.
 - `public/manifest.webmanifest`: installable PWA metadata and shortcuts.
 - `public/robots.txt`, `public/sitemap.xml`, `public/manus-routes.json`: crawlable route declarations.
-- `client/index.html`: canonical metadata, description, theme color and title.
+- `index.html`: canonical metadata, description, theme color and title.
 
 ## Intentional phase boundary
 This delivery is a frontend-first implementation. Paystack, server-side payment verification, account identity, notifications and private receipt storage are documented by the audit as the next backend phases; the UI leaves a clear path for those additions without pretending a browser redirect is payment confirmation.
